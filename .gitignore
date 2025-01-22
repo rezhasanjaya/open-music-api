@@ -1,4 +1,2 @@
 node_modules
-open-music-api.pem
 .env
-.prod.env
