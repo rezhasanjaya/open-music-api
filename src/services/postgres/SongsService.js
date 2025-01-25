@@ -2,7 +2,7 @@ const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
-const { mapDBToModel } = require('../../utils/songs');
+const { mapDBToModel, mapDBToSingleModel } = require('../../utils/songs');
 
 class SongsService {
   constructor() {
@@ -38,8 +38,28 @@ class SongsService {
     return result.rows[0].id;
   }
 
-  async getSongs() {
-    const result = await this._pool.query('SELECT * FROM songs');
+  async getSongs({ title = '', performer = '' }) {
+    let baseQuery = 'SELECT * FROM songs';
+    const conditions = [];
+    const values = [];
+
+    if (title) {
+      conditions.push('title ILIKE $' + (values.length + 1));
+      values.push(`%${title}%`);
+
+    }
+
+    if (performer) {
+      conditions.push('performer ILIKE $' + (values.length + 1));
+      values.push(`%${performer}%`);
+
+    }
+
+    if (conditions.length > 0) {
+      baseQuery += ' WHERE ' + conditions.join(' AND ');
+    }
+    const result = await this._pool.query(baseQuery, values);
+
     return result.rows.map(mapDBToModel);
   }
 
@@ -54,13 +74,13 @@ class SongsService {
       throw new NotFoundError('Data tidak ditemukan');
     }
 
-    return result.rows.map(mapDBToModel)[0];
+    return result.rows.map(mapDBToSingleModel)[0];
   }
 
   async editSongById(id, { title, year, performer, genre, duration = null, albumId = null }) {
     const updatedAt = new Date().toISOString();
     const query = {
-      text: 'UPDATE songs SET title = $1, year = $2, performer = $3, genre = $4, duration = $5, "albumId" = $6, updated_at = $7 WHERE id = $8 RETURNING id',  
+      text: 'UPDATE songs SET title = $1, year = $2, performer = $3, genre = $4, duration = $5, "albumId" = $6, updated_at = $7 WHERE id = $8 RETURNING id',
       values: [title, year, performer, genre, duration, albumId, updatedAt, id],
     };
 
@@ -84,6 +104,21 @@ class SongsService {
     if (!result.rows.length) {
       throw new NotFoundError('Data gagal dihapus. Id tidak ditemukan');
     }
+  }
+
+  async getSongsAlbum(id) {
+    const query = {
+      text: 'SELECT * FROM songs WHERE "albumId" = $1',
+      values: [id],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      return [];
+    }
+
+    return result.rows.map(mapDBToModel);
   }
 }
 

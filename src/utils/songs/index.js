@@ -5,4 +5,15 @@ const mapDBToModel = ({ id, title, performer }) => ({
   performer,
 });
 
-module.exports = { mapDBToModel };
+const mapDBToSingleModel = ({ id, title, year, performer, genre, duration, albumId }) => ({
+  id,
+  title,
+  year,
+  performer,
+  genre,
+  duration,
+  albumId
+});
+
+
+module.exports = { mapDBToModel, mapDBToSingleModel };
