@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /**
  * @type {import('node-pg-migrate').ColumnDefinitions | undefined}
  */
@@ -46,4 +47,3 @@ exports.up = (pgm) => {
 exports.down = (pgm) => {
   pgm.dropTable("playlists");
 };
-

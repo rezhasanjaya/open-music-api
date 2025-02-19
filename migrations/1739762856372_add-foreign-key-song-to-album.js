@@ -24,4 +24,3 @@ exports.up = (pgm) => {
 exports.down = (pgm) => {
   pgm.dropConstraint("songs", "songs_albumId_fkey");
 };
-

@@ -9,30 +9,40 @@ exports.shorthands = undefined;
  * @returns {Promise<void> | void}
  */
 exports.up = (pgm) => {
-  pgm.createTable("albums", {
+  pgm.createTable("playlist_songs", {
     id: {
       type: "VARCHAR(50)",
       primaryKey: true,
     },
-    name: {
-      type: "TEXT",
+    playlist_id: {
+      type: "VARCHAR(50)",
       notNull: true,
     },
-    year: {
-      type: "INTEGER",
+    song_id: {
+      type: "VARCHAR(50)",
       notNull: true,
     },
-    // eslint-disable-next-line camelcase
     created_at: {
       type: "TEXT",
       notNull: true,
     },
-    // eslint-disable-next-line camelcase
     updated_at: {
       type: "TEXT",
       notNull: true,
     },
   });
+
+  pgm.addConstraint(
+    "playlist_songs",
+    "fk_playlist_songs.playlist_id_playlists.id",
+    "FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE"
+  );
+
+  pgm.addConstraint(
+    "playlist_songs",
+    "fk_playlist_songs.song_id_songs.id",
+    "FOREIGN KEY(song_id) REFERENCES songs(id) ON DELETE CASCADE"
+  );
 };
 
 /**
@@ -41,5 +51,5 @@ exports.up = (pgm) => {
  * @returns {Promise<void> | void}
  */
 exports.down = (pgm) => {
-  pgm.dropTable("albums");
+  pgm.dropTable("playlist_songs");
 };
