@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 /**
  * @type {import('node-pg-migrate').ColumnDefinitions | undefined}
  */
@@ -10,32 +9,36 @@ exports.shorthands = undefined;
  * @returns {Promise<void> | void}
  */
 exports.up = (pgm) => {
-  pgm.createTable("playlists", {
+  pgm.createTable("collaborations", {
     id: {
       type: "VARCHAR(50)",
       primaryKey: true,
     },
-    name: {
-      type: "TEXT",
-      notNull: true,
-    },
-    owner: {
+    playlist_id: {
       type: "VARCHAR(50)",
-    },
-    created_at: {
-      type: "TEXT",
       notNull: true,
     },
-    updated_at: {
-      type: "TEXT",
+    user_id: {
+      type: "VARCHAR(50)",
       notNull: true,
     },
   });
 
   pgm.addConstraint(
-    "playlists",
-    "fk_playlists.owner_users.id",
-    "FOREIGN KEY(owner) REFERENCES users(id) ON DELETE CASCADE"
+    "collaborations",
+    "unique_playlist_id_and_user_id",
+    "UNIQUE(playlist_id, user_id)"
+  );
+
+  pgm.addConstraint(
+    "collaborations",
+    "fk_collaborations.playlist_id_playlists.id",
+    "FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE"
+  );
+  pgm.addConstraint(
+    "collaborations",
+    "fk_collaborations.user_id_users.id",
+    "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
   );
 };
 
@@ -45,6 +48,6 @@ exports.up = (pgm) => {
  * @returns {Promise<void> | void}
  */
 exports.down = (pgm) => {
-  pgm.dropTable("playlists");
+  pgm.dropTable("collaborations");
 };
 

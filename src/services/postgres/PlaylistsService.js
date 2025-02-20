@@ -7,9 +7,10 @@ const InvariantError = require("../../exceptions/InvariantError");
 const SongsService = require("../../services/postgres/SongsService");
 
 class PlaylistsService {
-  constructor() {
+  constructor(collaborationService) {
     this._pool = new Pool();
     this._songsService = new SongsService();
+    this._collaborationService = collaborationService;
   }
 
   async addPlaylist({ name, owner }) {
@@ -71,20 +72,20 @@ class PlaylistsService {
     }
   }
 
-  // async verifyPlaylistAccess(playlistId, userId) {
-  //   try {
-  //     await this.verifyPlaylistOwner(playlistId, userId);
-  //   } catch (error) {
-  //     if (error instanceof NotFoundError) {
-  //       throw error;
-  //     }
-  //     try {
-  //       await this._collaborationService.verifyCollaborator(playlistId, userId);
-  //     } catch {
-  //       throw error;
-  //     }
-  //   }
-  // }
+  async verifyPlaylistAccess(playlistId, userId) {
+    try {
+      await this.verifyPlaylistOwner(playlistId, userId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this._collaborationService.verifyCollaborator(playlistId, userId);
+      } catch {
+        throw error;
+      }
+    }
+  }
 }
 
 module.exports = PlaylistsService;
