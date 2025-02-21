@@ -17,23 +17,12 @@ class SongsService {
     duration = null,
     albumId = null,
   }) {
-    const id = "song-" + nanoid(16);
+    const id = `song-${nanoid(16)}`;
     const createdAt = new Date().toISOString();
-    const updatedAt = createdAt;
 
     const query = {
-      text: "INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
-      values: [
-        id,
-        title,
-        year,
-        genre,
-        performer,
-        duration,
-        albumId,
-        createdAt,
-        updatedAt,
-      ],
+      text: "INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7, $8, $8) RETURNING id",
+      values: [id, title, year, genre, performer, duration, albumId, createdAt],
     };
 
     const result = await this._pool.query(query);
@@ -129,6 +118,19 @@ class SongsService {
     return result.rows.map(mapDBToModel);
   }
 
+  async verifySongNotInPlaylist(playlistId, songId) {
+    const checkQuery = {
+      text: "SELECT EXISTS (SELECT 1 FROM playlist_songs WHERE playlist_id = $1 AND song_id = $2) AS exists",
+      values: [playlistId, songId],
+    };
+
+    const { rows } = await this._pool.query(checkQuery);
+
+    if (rows[0]?.exists) {
+      throw new InvariantError("Lagu sudah ada di dalam playlist");
+    }
+  }
+
   async getPlaylistSongs(id) {
     const query = {
       text: "SELECT songs.id, songs.title, songs.performer FROM playlist_songs LEFT JOIN songs ON playlist_songs.song_id = songs.id where playlist_id = $1",
@@ -142,6 +144,19 @@ class SongsService {
     }
 
     return result.rows.map(mapDBToModel);
+  }
+
+  async isValidSongId(id) {
+    const query = {
+      text: "SELECT 1 FROM songs WHERE id = $1",
+      values: [id],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new InvariantError("Id Tidak Valid");
+    }
   }
 }
 

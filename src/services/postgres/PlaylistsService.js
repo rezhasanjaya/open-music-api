@@ -14,7 +14,7 @@ class PlaylistsService {
   }
 
   async addPlaylist({ name, owner }) {
-    const id = "playlist-" + nanoid(16);
+    const id = `playlist-${nanoid(16)}`;
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
 
@@ -34,10 +34,12 @@ class PlaylistsService {
 
   async getPlaylists(owner) {
     const query = {
-      text: `SELECT playlists.id, playlists.name, users.username  
-             FROM playlists 
-             JOIN users ON users.id = playlists.owner  
-             WHERE playlists.owner = $1`,
+      text: `
+      SELECT DISTINCT playlists.id, playlists.name, users.username
+      FROM playlists
+      JOIN users ON users.id = playlists.owner
+      LEFT JOIN collaborations ON playlists.id = collaborations.playlist_id
+      WHERE playlists.owner = $1 OR collaborations.user_id = $1`,
       values: [owner],
     };
     const result = await this._pool.query(query);
@@ -59,31 +61,43 @@ class PlaylistsService {
 
   async verifyPlaylistOwner(id, owner) {
     const query = {
-      text: "SELECT * FROM playlists WHERE id = $1",
+      text: "SELECT owner FROM playlists WHERE id = $1",
       values: [id],
     };
+
     const result = await this._pool.query(query);
+
     if (!result.rows.length) {
-      throw new NotFoundError("PLaylist tidak ditemukan");
+      throw new NotFoundError("Playlist tidak ditemukan");
     }
-    const playlist = result.rows[0];
-    if (playlist.owner !== owner) {
-      throw new AuthorizationError("Anda tidak berhak mengakses resource ini");
+
+    if (result.rows[0].owner !== owner) {
+      throw new AuthorizationError("Anda tidak akses");
     }
   }
 
   async verifyPlaylistAccess(playlistId, userId) {
-    try {
-      await this.verifyPlaylistOwner(playlistId, userId);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
-      try {
-        await this._collaborationService.verifyCollaborator(playlistId, userId);
-      } catch {
-        throw error;
-      }
+    const query = {
+      text: `
+            SELECT playlists.owner, collaborations.user_id 
+            FROM playlists
+            LEFT JOIN collaborations ON playlists.id = collaborations.playlist_id
+            WHERE playlists.id = $1
+        `,
+      values: [playlistId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError("Playlist tidak ditemukan");
+    }
+
+    const isOwner = result.rows[0].owner === userId;
+    const isCollaborator = result.rows.some((row) => row.user_id === userId);
+
+    if (!isOwner && !isCollaborator) {
+      throw new AuthorizationError("Anda tidak berhak mengakses playlist ini");
     }
   }
 }
