@@ -1,8 +1,8 @@
-const { nanoid } = require("nanoid");
-const { Pool } = require("pg");
-const NotFoundError = require("../../exceptions/NotFoundError");
-const SongsService = require("../../services/postgres/SongsService");
-const PlaylistsService = require("./PlaylistsService");
+const { nanoid } = require('nanoid');
+const { Pool } = require('pg');
+const NotFoundError = require('../../exceptions/NotFoundError');
+const SongsService = require('../../services/postgres/SongsService');
+const PlaylistsService = require('./PlaylistsService');
 
 class PlaylistSongsService {
   constructor() {
@@ -18,7 +18,7 @@ class PlaylistSongsService {
     const createdAt = new Date().toISOString();
 
     const insertQuery = {
-      text: "INSERT INTO playlist_songs (id, playlist_id, song_id, created_at, updated_at) VALUES($1, $2, $3, $4, $4) RETURNING id",
+      text: 'INSERT INTO playlist_songs (id, playlist_id, song_id, created_at, updated_at) VALUES($1, $2, $3, $4, $4) RETURNING id',
       values: [id, playlistId, songId, createdAt],
     };
 
@@ -44,7 +44,7 @@ class PlaylistSongsService {
     const [playlist] = playlistResult.rows;
 
     if (!playlist) {
-      throw new NotFoundError("Playlist yang anda cari tidak ditemukan");
+      throw new NotFoundError('Playlist yang anda cari tidak ditemukan');
     }
 
     const songs = await this._songsService.getPlaylistSongs(playlistId);
@@ -57,14 +57,14 @@ class PlaylistSongsService {
 
   async deleteSongOnPlaylistById(id) {
     const query = {
-      text: "DELETE FROM playlist_songs WHERE song_id = $1 RETURNING id",
+      text: 'DELETE FROM playlist_songs WHERE song_id = $1 RETURNING id',
       values: [id],
     };
 
     const result = await this._pool.query(query);
 
     if (!result.rows.length) {
-      throw new NotFoundError("Data gagal dihapus. Lagu tidak ditemukan");
+      throw new NotFoundError('Data gagal dihapus. Lagu tidak ditemukan');
     }
   }
 }

@@ -1,4 +1,4 @@
-const autoBind = require("auto-bind");
+const autoBind = require('auto-bind');
 
 class PlaylistsHandler {
   constructor(service, validator) {
@@ -10,7 +10,7 @@ class PlaylistsHandler {
 
   async postPlaylistHandler(request, h) {
     this._validator.validatePlaylistPayload(request.payload);
-    const { name = "no name" } = request.payload;
+    const { name = 'no name' } = request.payload;
     const { id: credentialId } = request.auth.credentials;
     const playlistId = await this._service.addPlaylist({
       name,
@@ -18,8 +18,8 @@ class PlaylistsHandler {
     });
 
     const response = h.response({
-      status: "success",
-      message: "Data berhasil ditambahkan",
+      status: 'success',
+      message: 'Data berhasil ditambahkan',
       data: {
         playlistId,
       },
@@ -33,22 +33,22 @@ class PlaylistsHandler {
     const playlists = await this._service.getPlaylists(credentialId);
 
     return {
-      status: "success",
+      status: 'success',
       data: {
         playlists,
       },
     };
   }
 
-  async deletePlaylistByIdHandler(request, h) {
+  async deletePlaylistByIdHandler(request) {
     const { id } = request.params;
     const { id: credentialId } = request.auth.credentials;
     await this._service.verifyPlaylistOwner(id, credentialId);
     await this._service.deletePlaylistById(id);
 
     return {
-      status: "success",
-      message: "Data berhasil dihapus",
+      status: 'success',
+      message: 'Data berhasil dihapus',
     };
   }
 }

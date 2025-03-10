@@ -1,8 +1,8 @@
-const { Pool } = require("pg");
-const { nanoid } = require("nanoid");
-const InvariantError = require("../../exceptions/InvariantError");
-const PlaylistsService = require("./PlaylistsService");
-const NotFoundError = require("../../exceptions/NotFoundError");
+const { Pool } = require('pg');
+const { nanoid } = require('nanoid');
+const InvariantError = require('../../exceptions/InvariantError');
+const PlaylistsService = require('./PlaylistsService');
+const NotFoundError = require('../../exceptions/NotFoundError');
 
 class PlaylistSongActivitiesService {
   constructor() {
@@ -15,14 +15,14 @@ class PlaylistSongActivitiesService {
     const time = new Date().toISOString();
 
     const query = {
-      text: "INSERT INTO playlist_song_activities VALUES($1, $2, $3, $4, $5, $6, $6, $6) RETURNING id",
+      text: 'INSERT INTO playlist_song_activities VALUES($1, $2, $3, $4, $5, $6, $6, $6) RETURNING id',
       values: [id, playlistId, songId, credentialId, action, time],
     };
 
     const result = await this._pool.query(query);
 
     if (!result.rows[0].id) {
-      throw new InvariantError("Data gagal ditambahkan");
+      throw new InvariantError('Data gagal ditambahkan');
     }
 
     return result.rows[0].id;
@@ -50,7 +50,7 @@ class PlaylistSongActivitiesService {
     const result = await this._pool.query(query);
 
     if (result.rowCount === 0) {
-      throw new NotFoundError("Playlist yang anda cari tidak ditemukan");
+      throw new NotFoundError('Playlist yang anda cari tidak ditemukan');
     }
 
     return result.rows.map((row) => ({

@@ -1,11 +1,11 @@
-const Jwt = require("@hapi/jwt");
-const InvariantError = require("../exceptions/InvariantError");
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
+const Jwt = require('@hapi/jwt');
+const InvariantError = require('../exceptions/InvariantError');
 
 const TokenManager = {
-  generateAccessToken: (payload) =>
-    Jwt.token.generate(payload, process.env.ACCESS_TOKEN_KEY),
-  generateRefreshToken: (payload) =>
-    Jwt.token.generate(payload, process.env.REFRESH_TOKEN_KEY),
+  generateAccessToken: (payload) => Jwt.token.generate(payload, process.env.ACCESS_TOKEN_KEY),
+  generateRefreshToken: (payload) => Jwt.token.generate(payload, process.env.REFRESH_TOKEN_KEY),
   verifyRefreshToken: (refreshToken) => {
     try {
       const artifacts = Jwt.token.decode(refreshToken);
@@ -13,7 +13,7 @@ const TokenManager = {
       const { payload } = artifacts.decoded;
       return payload;
     } catch (error) {
-      throw new InvariantError("Refresh token tidak valid");
+      throw new InvariantError('Refresh token tidak valid');
     }
   },
 };

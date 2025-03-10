@@ -1,4 +1,4 @@
-const autoBind = require("auto-bind");
+const autoBind = require('auto-bind');
 
 class PlaylistSongActivitiesHandler {
   constructor(service, validator) {
@@ -12,13 +12,10 @@ class PlaylistSongActivitiesHandler {
     const { id: playlistId } = request.params;
     const { id: credentialId } = request.auth.credentials;
 
-    const activities = await this._service.getActivities(
-      playlistId,
-      credentialId
-    );
+    const activities = await this._service.getActivities(playlistId, credentialId);
 
     return {
-      status: "success",
+      status: 'success',
       data: {
         playlistId,
         activities,

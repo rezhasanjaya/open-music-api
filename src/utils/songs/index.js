@@ -12,8 +12,7 @@ const mapDBToSingleModel = ({ id, title, year, performer, genre, duration, album
   performer,
   genre,
   duration,
-  albumId
+  albumId,
 });
-
 
 module.exports = { mapDBToModel, mapDBToSingleModel };

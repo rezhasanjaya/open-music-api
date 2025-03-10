@@ -1,4 +1,4 @@
-const Joi = require("joi");
+const Joi = require('joi');
 const currentYear = new Date().getFullYear();
 
 const SongPayloadSchema = Joi.object({

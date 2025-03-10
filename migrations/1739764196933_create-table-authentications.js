@@ -8,9 +8,9 @@
  * @returns {Promise<void> | void}
  */
 exports.up = (pgm) => {
-  pgm.createTable("authentications", {
+  pgm.createTable('authentications', {
     token: {
-      type: "TEXT",
+      type: 'TEXT',
       notNull: true,
     },
   });
@@ -22,5 +22,5 @@ exports.up = (pgm) => {
  * @returns {Promise<void> | void}
  */
 exports.down = (pgm) => {
-  pgm.dropTable("authentications");
+  pgm.dropTable('authentications');
 };
