@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 const autoBind = require('auto-bind');
 
 class ExportsHandler {
@@ -26,3 +27,5 @@ class ExportsHandler {
     return response;
   }
 }
+
+module.exports = ExportsHandler;

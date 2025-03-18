@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const amqp = require('amqplib');
 
 const ProducerService = {
@@ -9,11 +10,10 @@ const ProducerService = {
     });
 
     await channel.sendToQueue(queue, Buffer.from(message));
+    setTimeout(() => {
+      connection.close();
+    }, 1000);
   },
-
-  setTimeout(() => {
-    connection.close();
-  }, 1000);
 };
 
 module.exports = ProducerService;
