@@ -40,7 +40,38 @@ class UserAlbumLikesService {
 
     return result.rows[0].id;
   }
+
+  async unlikeAlbum(albumId, userId) {
+    await this._albumsService.verifyAlbumExist(albumId);
+    const isAlreadyLiked = await this.isLiked(albumId, userId);
+    if (!isAlreadyLiked) {
+      throw new InvariantError('Anda belum like album ini');
+    }
+
+    const query = {
+      text: 'DELETE FROM user_album_likes WHERE album_id = $1 AND user_id = $2 RETURNING id',
+      values: [albumId, userId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new InvariantError('Gagal unlike');
+    }
+  }
+
+  async getLikesCount(albumId) {
+    await this._albumsService.verifyAlbumExist(albumId);
+
+    const query = {
+      text: 'SELECT COUNT(*) AS likes FROM user_album_likes WHERE album_id = $1',
+      values: [albumId],
+    };
+
+    const result = await this._pool.query(query);
+
+    return parseInt(result.rows[0].likes, 10);
+  }
 }
 
 module.exports = UserAlbumLikesService;
-
