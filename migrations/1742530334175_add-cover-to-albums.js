@@ -8,11 +8,12 @@
  * @returns {Promise<void> | void}
  */
 exports.up = (pgm) => {
-  pgm.addConstraint(
-    'songs',
-    'songs_albumId_fkey',
-    'FOREIGN KEY("albumId") REFERENCES albums(id) ON DELETE CASCADE'
-  );
+  pgm.addColumn('albums', {
+    coverUrl: {
+      type: 'TEXT',
+      notNull: false,
+    },
+  });
 };
 
 /**
@@ -21,6 +22,6 @@ exports.up = (pgm) => {
  * @returns {Promise<void> | void}
  */
 exports.down = (pgm) => {
-  pgm.dropConstraint('songs', 'songs_albumId_fkey');
+  pgm.dropColumn('albums', 'coverUrl');
 };
 

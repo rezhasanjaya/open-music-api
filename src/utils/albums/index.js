@@ -1,8 +1,10 @@
 /* eslint-disable camelcase */
-const mapDBToModel = ({ id, name, year }) => ({
+const mapDBToModel = ({ id, name, year, coverUrl }) => ({
   id,
   name,
   year,
+  coverUrl,
 });
 
 module.exports = { mapDBToModel };
+
