@@ -4,6 +4,7 @@ const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
 const Inert = require('@hapi/inert');
 const path = require('path');
+const config = require('./utils/config');
 
 //Albums
 const albums = require('./api/albums');
@@ -59,10 +60,14 @@ const UploadsValidator = require('./validator/uploads');
 const userAlbumLikes = require('./api/user-album-likes');
 const UserAlbumLikesService = require('./services/postgres/UserAlbumLikesService');
 
+//Cache
+const CacheService = require('./services/redis/CacheService');
+
 //Error
 const ClientError = require('./exceptions/ClientError');
 
 const init = async () => {
+  const cacheService = new CacheService();
   const collaborationsService = new CollaborationsService();
   const albumsService = new AlbumsService();
   const songsService = new SongsService();
@@ -71,15 +76,13 @@ const init = async () => {
   const playlistsService = new PlaylistsService(collaborationsService);
   const playlistSongsService = new PlaylistSongsService();
   const playlistSongActivitiesService = new PlaylistSongActivitiesService();
-  const storageService = new StorageService(
-    path.resolve(__dirname, 'api/uploads/file/images')
-  );
-  const userAlbumLikesService = new UserAlbumLikesService();
+  const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/file/images'));
+  const userAlbumLikesService = new UserAlbumLikesService(cacheService);
 
   const server = Hapi.server({
     // eslint-disable-next-line no-undef
-    port: process.env.PORT,
-    host: process.env.HOST,
+    port: config.app.port,
+    host: config.app.host,
     routes: {
       cors: {
         origin: ['*'],
@@ -217,4 +220,3 @@ const init = async () => {
 };
 
 init();
-

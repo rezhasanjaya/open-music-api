@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
@@ -5,10 +6,12 @@ const AlbumsService = require('./AlbumsService');
 // const UsersService = require('./UsersService');
 
 class UserAlbumLikesService {
-  constructor() {
+  constructor(cacheService) {
     this._pool = new Pool();
     this._albumsService = new AlbumsService();
+    this._cacheService = cacheService;
   }
+
   async isLiked(albumId, userId) {
     const query = {
       text: 'SELECT 1 FROM user_album_likes WHERE album_id = $1 AND user_id = $2',
@@ -38,18 +41,21 @@ class UserAlbumLikesService {
       throw new InvariantError('Gagal like album');
     }
 
+    await this._cacheService.delete(`likes:${albumId}`);
     return result.rows[0].id;
   }
 
   async unlikeAlbum(albumId, userId) {
     await this._albumsService.verifyAlbumExist(albumId);
-    const isAlreadyLiked = await this.isLiked(albumId, userId);
-    if (!isAlreadyLiked) {
+
+    try {
+      await this.isLiked(albumId, userId);
+    } catch (error) {
       throw new InvariantError('Anda belum like album ini');
     }
 
     const query = {
-      text: 'DELETE FROM user_album_likes WHERE album_id = $1 AND user_id = $2 RETURNING id',
+      text: 'DELETE FROM user_album_likes WHERE album_id = $1 AND user_id = $2 RETURNING album_id',
       values: [albumId, userId],
     };
 
@@ -58,19 +64,32 @@ class UserAlbumLikesService {
     if (!result.rows.length) {
       throw new InvariantError('Gagal unlike');
     }
+
+    const { album_id: albumIdDeleted } = result.rows[0];
+    await this._cacheService.delete(`likes:${albumIdDeleted}`);
   }
 
   async getLikesCount(albumId) {
-    await this._albumsService.verifyAlbumExist(albumId);
+    try {
+      const result = await this._cacheService.get(`likes:${albumId}`);
+      return JSON.parse(result);
+    } catch (error) {
+      const query = {
+        text: 'SELECT COUNT(*)::INTEGER AS likes FROM user_album_likes WHERE album_id = $1',
+        values: [albumId],
+      };
 
-    const query = {
-      text: 'SELECT COUNT(*) AS likes FROM user_album_likes WHERE album_id = $1',
-      values: [albumId],
-    };
+      const result = await this._pool.query(query);
+      const likesCount = result.rows.length > 0 ? result.rows[0].likes : 0;
 
-    const result = await this._pool.query(query);
+      if (likesCount > 0) {
+        await this._albumsService.verifyAlbumExist(albumId);
+      }
 
-    return parseInt(result.rows[0].likes, 10);
+      await this._cacheService.set(`likes:${albumId}`, JSON.stringify(likesCount));
+
+      return likesCount;
+    }
   }
 }
 
