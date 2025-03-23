@@ -69,26 +69,34 @@ class UserAlbumLikesService {
     await this._cacheService.delete(`likes:${albumIdDeleted}`);
   }
 
+  async getCachedLikesCount(albumId) {
+    const result = await this._cacheService.get(`likes:${albumId}`);
+    return JSON.parse(result);
+  }
+
+  async calculateLikesCount(albumId) {
+    const query = {
+      text: 'SELECT COUNT(*)::INTEGER AS likes FROM user_album_likes WHERE album_id = $1',
+      values: [albumId],
+    };
+
+    const result = await this._pool.query(query);
+    const likesCount = result.rows.length > 0 ? result.rows[0].likes : 0;
+
+    if (likesCount > 0) {
+      await this._albumsService.verifyAlbumExist(albumId);
+    }
+
+    await this._cacheService.set(`likes:${albumId}`, JSON.stringify(likesCount));
+
+    return likesCount;
+  }
+
   async getLikesCount(albumId) {
     try {
-      const result = await this._cacheService.get(`likes:${albumId}`);
-      return JSON.parse(result);
+      return await this.getCachedLikesCount(albumId);
     } catch (error) {
-      const query = {
-        text: 'SELECT COUNT(*)::INTEGER AS likes FROM user_album_likes WHERE album_id = $1',
-        values: [albumId],
-      };
-
-      const result = await this._pool.query(query);
-      const likesCount = result.rows.length > 0 ? result.rows[0].likes : 0;
-
-      if (likesCount > 0) {
-        await this._albumsService.verifyAlbumExist(albumId);
-      }
-
-      await this._cacheService.set(`likes:${albumId}`, JSON.stringify(likesCount));
-
-      return likesCount;
+      return await this.calculateLikesCount(albumId);
     }
   }
 }

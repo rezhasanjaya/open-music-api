@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const autoBind = require('auto-bind');
 
 class UserAlbumLikesHandler {
@@ -30,21 +31,34 @@ class UserAlbumLikesHandler {
       status: 'success',
       message: 'Batal menyukai Album',
     });
-    response.code(201);
+    response.code(200);
     return response;
   }
 
-  async getUserAlbumLikesHandler(request) {
+  async getUserAlbumLikesHandler(request, h) {
     const { id: albumId } = request.params;
+    let likes;
+    let source;
 
-    const likes = await this._service.getLikesCount(albumId);
+    try {
+      const result = await this._service.getCachedLikesCount(albumId);
+      likes = result;
+      source = 'cache';
+    } catch (error) {
+      likes = await this._service.calculateLikesCount(albumId);
+      source = 'database';
+    }
 
-    return {
+    const response = h.response({
       status: 'success',
       data: {
         likes,
       },
-    };
+    });
+
+    response.header('X-Data-Source', source);
+
+    return response;
   }
 }
 
