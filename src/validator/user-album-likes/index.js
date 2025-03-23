@@ -12,4 +12,3 @@ const UserAlbumLikesValidator = {
 };
 
 module.exports = UserAlbumLikesValidator;
-

@@ -7,4 +7,3 @@ const mapDBToModel = ({ id, name, year, coverUrl }) => ({
 });
 
 module.exports = { mapDBToModel };
-

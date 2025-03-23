@@ -12,4 +12,3 @@ const UploadsValidator = {
 };
 
 module.exports = UploadsValidator;
-

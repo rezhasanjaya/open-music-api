@@ -6,4 +6,3 @@ const UserAlbumLikePayloadSchema = Joi.object({
 });
 
 module.exports = { UserAlbumLikePayloadSchema };
-
